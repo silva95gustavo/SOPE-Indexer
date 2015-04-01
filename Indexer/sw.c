@@ -1,11 +1,10 @@
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdio.h>
 
 #define READ 0
 #define WRITE 1
 
-#define BUF_SIZE 20
+#define BUF_SIZE 256 // Minimum: 2
 
 int main(int argc, char *argv[])
 {
