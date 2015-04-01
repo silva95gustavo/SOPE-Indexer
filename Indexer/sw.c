@@ -4,7 +4,7 @@
 #define READ 0
 #define WRITE 1
 
-#define BUF_SIZE 256 // Minimum: 2
+#define BUF_SIZE 1 // Minimum: 1
 
 int main(int argc, char *argv[])
 {
@@ -37,9 +37,9 @@ int main(int argc, char *argv[])
 	int result;
 	do
 	{
-		if ((result = read(fd_pipe[READ], buf, BUF_SIZE - 1)) == -1) return 1;
+		if ((result = read(fd_pipe[READ], buf, BUF_SIZE)) == -1) return 1;
 		if (write(STDOUT_FILENO, buf, result) < result) return 1;
-	} while (result == BUF_SIZE - 1);
+	} while (result == BUF_SIZE);
 
 	if (close(fd_pipe[READ]) == -1) return 1;
 
