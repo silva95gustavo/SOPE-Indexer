@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 #define READ 0
 #define WRITE 1
@@ -8,6 +9,12 @@
 
 int main(int argc, char *argv[])
 {
+	if (argc != 3)
+	{
+		printf("Usage: sw WORD FILE\n");
+		return 1;
+	}
+
 	int fd_pipe[2];
 	if (pipe(fd_pipe) < 0) return 1;
 
