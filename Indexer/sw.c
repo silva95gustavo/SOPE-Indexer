@@ -1,11 +1,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define READ 0
 #define WRITE 1
 
-#define BUF_SIZE 1 // Minimum: 1
+#define BUF_SIZE 2048
 
 int main(int argc, char *argv[])
 {
@@ -28,7 +31,7 @@ int main(int argc, char *argv[])
 	{
 		if (close(fd_pipe[READ]) == -1) return 1;
 		if (dup2(fd_pipe[WRITE], STDOUT_FILENO) == -1) return 1;
-		if (execl("/bin/grep", "grep", "-nob", argv[1], argv[2], NULL) == -1) return 1;
+		if (execl("/bin/grep", "grep", "-no", argv[1], argv[2], NULL) == -1) return 1;
 		break; // <-- most useless break ever, but causes a compilation warning if removed
 	}
 	default: // parent
@@ -39,14 +42,27 @@ int main(int argc, char *argv[])
 
 	if (close(fd_pipe[WRITE]) == -1) return 1;
 
+	int status;
+	if (wait(&status) == -1) return 1;
+	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) return 1;
+
 	char buf[BUF_SIZE];
 
 	int result;
-	do
+	if ((result = read(fd_pipe[READ], buf, BUF_SIZE - 1)) == -1) return 1;
+
+	char *str;
+	if ((str = strtok(buf, "\n")) == NULL) return 1;
+
+	printf("%s: ", argv[1]);
+
+	while (str != NULL)
 	{
-		if ((result = read(fd_pipe[READ], buf, BUF_SIZE)) == -1) return 1;
-		if (write(STDOUT_FILENO, buf, result) < result) return 1;
-	} while (result == BUF_SIZE);
+		if ((str = strtok(NULL, ":")) == NULL) return 1;
+		unsigned line_number = atoi(str);
+		if ((str = strtok(NULL, "\n")) == NULL) return 1;
+		printf("%d ", line_number);
+	}
 
 	if (close(fd_pipe[READ]) == -1) return 1;
 
