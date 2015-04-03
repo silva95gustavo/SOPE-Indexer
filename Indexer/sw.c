@@ -38,10 +38,10 @@ int find_word(const char *word, const char *file)
 
 	while (str != NULL)
 	{
-		if ((str = strtok(NULL, ":")) == NULL) return 1;
-		unsigned line_number = atoi(str);
-		if ((str = strtok(NULL, "\n")) == NULL) return 1;
+		unsigned line_number = atoi(str); // Apesar de a string ser "<linha>:<palavra>", atoi retorna o inteiro correspondente a <linha>
 		printf("%d ", line_number);
+
+		if ((str = strtok(NULL, "\n")) == NULL) return 1;
 	}
 
 	return 0;
