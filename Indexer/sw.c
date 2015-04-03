@@ -6,15 +6,20 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #define READ 0
 #define WRITE 1
 
 #define BUF_SIZE 2048
+#define WORDS_FILE "words.txt"
+#define TEMP_FOLDER "temp/"
 
-int find_word(const char *word, const char *file);
+int find_words(const char *file);
+int find_word(const char *word, const char *file, FILE *fp);
 int grep(const char *word, const char *file, char *buf);
 int get_chapter_num(const char *file, unsigned *chapter_num);
+int get_directory_name(const char *file, char *directory);
 
 int main(int argc, char *argv[])
 {
@@ -24,12 +29,50 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (find_word("Holmes", argv[1])) return 1;
+	if (find_words(argv[1])) return 1;
 
 	return 0;
 }
 
-int find_word(const char *word, const char *file)
+int find_words(const char *file)
+{
+	char directory[strlen(file) + 1];
+	get_directory_name(file, directory);
+	char words[strlen(directory) + strlen(WORDS_FILE) + 1];
+	strcpy(words, directory);
+	strcat(words, WORDS_FILE);
+	FILE *fpr = fopen(words, "r");
+	if (fpr == NULL) return 1;
+
+	char dest_folder[strlen(directory) + strlen(TEMP_FOLDER) + 1];
+	strcpy(dest_folder, directory);
+	strcat(dest_folder, TEMP_FOLDER);
+
+	char filecpy[strlen(file) + 1];
+	strcpy(filecpy, file);
+
+	char dest[strlen(dest_folder) + strlen(filecpy) + 1];
+	strcpy(dest, dest_folder);
+	strcat(dest, basename(filecpy));
+
+	FILE *fpw = fopen(dest, "w");
+	if (fpw == NULL) return 1;
+
+	char buf[BUF_SIZE];
+	while (fgets(buf, sizeof(buf), fpr))
+	{
+		buf[strcspn(buf, "\n")] = '\0'; // Remove trailing newline
+		if (find_word(buf, file, fpw)) return 1;
+	}
+	if (ferror(fpr)) return 1;
+
+	fclose(fpr);
+	fclose(fpw);
+
+	return 0;
+}
+
+int find_word(const char *word, const char *file, FILE *fp)
 {
 	char buf[BUF_SIZE];
 	grep(word, file, buf);
@@ -40,17 +83,17 @@ int find_word(const char *word, const char *file)
 	unsigned chapter_num;
 	get_chapter_num(file, &chapter_num);
 
-	printf("%s:", word);
+	fprintf(fp, "%s:", word);
 
 	while (str != NULL)
 	{
 		unsigned line_number;
 		if (sscanf(str, "%u:%*s", &line_number) < 0) return 1;
-		printf(" %d-%d", chapter_num, line_number);
+		fprintf(fp, " %d-%d", chapter_num, line_number);
 
 		str = strtok(NULL, "\n");
 	}
-	printf("\n");
+	fprintf(fp, "\n");
 
 	return 0;
 }
@@ -99,5 +142,15 @@ int get_chapter_num(const char *file, unsigned *chapter_num)
 	strcpy(filecpy, file);
 	char *base = basename(filecpy);
 	if (sscanf(base, "%u.%*s", chapter_num) < 0) return 1;
+	return 0;
+}
+
+int get_directory_name(const char *file, char *directory)
+{
+	char filecpy[strlen(file) + 1];
+	strcpy(filecpy, file);
+	char *dir = dirname(filecpy);
+	strcpy(directory, dir);
+	strcat(directory, "/");
 	return 0;
 }
