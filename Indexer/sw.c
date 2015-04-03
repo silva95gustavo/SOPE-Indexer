@@ -44,15 +44,11 @@ int find_words(const char *file)
 	FILE *fpr = fopen(words, "r");
 	if (fpr == NULL) return 1;
 
-	char dest_folder[strlen(directory) + strlen(TEMP_FOLDER) + 1];
-	strcpy(dest_folder, directory);
-	strcat(dest_folder, TEMP_FOLDER);
-
 	char filecpy[strlen(file) + 1];
 	strcpy(filecpy, file);
 
-	char dest[strlen(dest_folder) + strlen(filecpy) + 1];
-	strcpy(dest, dest_folder);
+	char dest[strlen(TEMP_FOLDER) + strlen(filecpy) + 1];
+	strcpy(dest, TEMP_FOLDER);
 	strcat(dest, basename(filecpy));
 
 	FILE *fpw = fopen(dest, "w");
