@@ -48,8 +48,9 @@ int find_word(const char *word, const char *file)
 		if (sscanf(str, "%u:%*s", &line_number) < 0) return 1;
 		printf(" %d-%d", chapter_num, line_number);
 
-		if ((str = strtok(NULL, "\n")) == NULL) return 1;
+		str = strtok(NULL, "\n");
 	}
+	printf("\n");
 
 	return 0;
 }
