@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <stdlib.h>
+#include <libgen.h>
+#include <stdbool.h>
 
 #define READ 0
 #define WRITE 1
@@ -12,6 +14,7 @@
 
 int find_word(const char *word, const char *file);
 int grep(const char *word, const char *file, char *buf);
+int get_chapter_num(const char *file, unsigned *chapter_num);
 
 int main(int argc, char *argv[])
 {
@@ -34,12 +37,16 @@ int find_word(const char *word, const char *file)
 	char *str;
 	if ((str = strtok(buf, "\n")) == NULL) return 1;
 
-	printf("%s: ", word);
+	unsigned chapter_num;
+	get_chapter_num(file, &chapter_num);
+
+	printf("%s:", word);
 
 	while (str != NULL)
 	{
-		unsigned line_number = atoi(str); // Apesar de a string ser "<linha>:<palavra>", atoi retorna o inteiro correspondente a <linha>
-		printf("%d ", line_number);
+		unsigned line_number;
+		if (sscanf(str, "%u:%*s", &line_number) < 0) return 1;
+		printf(" %d-%d", chapter_num, line_number);
 
 		if ((str = strtok(NULL, "\n")) == NULL) return 1;
 	}
@@ -82,5 +89,14 @@ int grep(const char *word, const char *file, char *buf)
 
 	if (close(fd_pipe[READ]) == -1) return 1;
 
+	return 0;
+}
+
+int get_chapter_num(const char *file, unsigned *chapter_num)
+{
+	char filecpy[strlen(file) + 1];
+	strcpy(filecpy, file);
+	char *base = basename(filecpy);
+	if (sscanf(base, "%u.%*s", chapter_num) < 0) return 1;
 	return 0;
 }
