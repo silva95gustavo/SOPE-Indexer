@@ -19,7 +19,6 @@
 
 // Variables
 DIR* dir;
-char *dir_name;
 
 // Function declarations
 int setup_dir();
@@ -60,13 +59,15 @@ int main(int argc, char *argv[])
 	if(concatenate_files_to_index(filenames, filenumber) != 0) return 1;
 	if(sort_index()!=0) return 1;
 	if(remove_repeated_lines()!= 0) return 1;
-	if(remove_temp_files()!=0) return 1;
+	//if(remove_temp_files()!=0) return 1;
 
 	return 0;
 }
 
 int setup_dir()
 {
+	char *dir_name;
+
 	dir_name = (char*)malloc(MAX_DIR_SIZE);
 	dir_name = getcwd(dir_name, MAX_DIR_SIZE);
 
