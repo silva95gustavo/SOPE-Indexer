@@ -59,7 +59,9 @@ int main(int argc, char *argv[])
 	if(concatenate_files_to_index(filenames, filenumber) != 0) return 1;
 	if(sort_index()!=0) return 1;
 	if(remove_repeated_lines()!= 0) return 1;
-	//if(remove_temp_files()!=0) return 1;
+	if(remove_temp_files()!=0) return 1;
+
+	printf("\n\n\tDone\n\n");
 
 	return 0;
 }
@@ -159,7 +161,7 @@ int sort_index()
 	int pid = fork();
 	int status = 0;
 
-	if(pid != 0)
+	if(pid == 0)
 	{
 		dup2(index_fd, STDOUT_FILENO);
 		execvp(cmd[0], cmd);
