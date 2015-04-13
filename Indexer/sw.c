@@ -53,7 +53,6 @@ int find_words(const char *file)
 
 	FILE *fpw = fopen(dest, "w");
 	if (fpw == NULL) return 1;
-
 	char buf[BUF_SIZE];
 	while (fgets(buf, sizeof(buf), fpr))
 	{
@@ -71,10 +70,11 @@ int find_words(const char *file)
 int find_word(const char *word, const char *file, FILE *fp)
 {
 	char buf[BUF_SIZE];
+	buf[0] = '\0';
 	grep(word, file, buf);
 
 	char *str;
-	if ((str = strtok(buf, "\n")) == NULL) return 1;
+	if ((str = strtok(buf, "\n")) == NULL) return 0; // return 0 because the output may be empty (if the word is not found)
 
 	unsigned chapter_num;
 	get_chapter_num(file, &chapter_num);
@@ -90,7 +90,6 @@ int find_word(const char *word, const char *file, FILE *fp)
 		str = strtok(NULL, "\n");
 	}
 	fprintf(fp, "\n");
-
 	return 0;
 }
 
@@ -125,7 +124,8 @@ int grep(const char *word, const char *file, char *buf)
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) return 1;
 
 	int result;
-	if ((result = read(fd_pipe[READ], buf, BUF_SIZE - 1)) == -1) return 1;
+	if ((result = read(fd_pipe[READ], buf, BUF_SIZE - 2)) == -1) return 1;
+	buf[result] = '\0';
 
 	if (close(fd_pipe[READ]) == -1) return 1;
 
