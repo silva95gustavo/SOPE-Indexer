@@ -36,7 +36,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	printf("hello\n");
 	if(setup_dir() != 0) return 1; // Set dir string
+	printf("hello\n");
 
 	struct dirent *ent;
 	char** filenames = malloc(0);
@@ -54,6 +56,7 @@ int main(int argc, char *argv[])
 		ent = readdir(dir);
 	}
 	// at this point, filenames contains the list of filenames to be read from DIR
+
 
 	prep_filenames(filenames, filenumber);
 	if(concatenate_files_to_index(filenames, filenumber) != 0) return 1;
@@ -154,9 +157,11 @@ void prep_filenames(char** filenames, int filenumber)
 
 int sort_index()
 {
-	char **cmd = malloc(2);
+	char **cmd = malloc(4);
 	cmd[0] = "sort";
-	cmd[1] = UNSORTED_INDEX_NAME;
+	cmd[1] = "-V";
+	cmd[2] = "-f";
+	cmd[3] = UNSORTED_INDEX_NAME;
 
 	int index_fd = open(SORTED_REPEAT_INDEX, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
 
@@ -188,8 +193,9 @@ int remove_repeated_lines()
 	if(!repeat_file) return 1;
 	if(index_fd < 0) return 1;
 
-	char str[MAX_BUF_SIZE];
-	char word[MAX_WORD_SIZE];
+	char *str;
+	str = (char *)malloc(MAX_BUF_SIZE*sizeof(char));
+	//char word[MAX_WORD_SIZE];
 	char *prev_word = NULL;
 
 	int last_read_word = 0;		// 0 - false, 1 - true
@@ -197,6 +203,50 @@ int remove_repeated_lines()
 	while(fscanf(repeat_file, "%s", str) != EOF)
 	{
 		int len = strlen(str);
+
+		if(str[len-1] == END_WORD_CHAR)			// WORD
+		{
+			if(prev_word == NULL)
+			{
+				write(index_fd, str, len*sizeof(char));
+				write(index_fd, " ", 1*sizeof(char));
+
+				prev_word = malloc(len*sizeof(char));
+				strcpy(prev_word, str);
+				last_read_word = 1;
+			}
+			else
+			{
+				if(strcmp(str, prev_word) == 0)		// Last word was the same
+				{
+					last_read_word = 0;
+				}
+				else								// New word
+				{
+					write(index_fd, "\n", sizeof(char));
+					write(index_fd, str, len*sizeof(char));
+					write(index_fd, " ", sizeof(char));
+					//free(prev_word);
+					prev_word = malloc(len*sizeof(char));
+					strcpy(prev_word, str);
+					last_read_word = 1;
+				}
+			}
+		}
+		else								// FILE-LINE match
+		{
+			if(last_read_word == 0)
+				write(index_fd, ", ", 2*sizeof(char));
+			else
+				write(index_fd, " ", sizeof(char));
+			write(index_fd, str, len*sizeof(char));
+			last_read_word = 0;
+		}
+
+		free(str);
+		str = (char *)malloc(MAX_BUF_SIZE*sizeof(char));
+
+		/*int len = strlen(str);
 		if(str[len-1] == END_WORD_CHAR)	// string read is a word of the index
 		{
 			last_read_word = 1;
@@ -229,10 +279,10 @@ int remove_repeated_lines()
 			if(last_read_word == 0)
 				write(index_fd, ", ", 2);
 
-			write(index_fd, str, strlen(str)*sizeof(char));
+			write(index_fd, str, len*sizeof(char));
 
 			last_read_word = 0;
-		}
+		}*/
 
 	}
 
