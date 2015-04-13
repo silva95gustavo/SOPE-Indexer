@@ -105,7 +105,10 @@ int concatenate_files_to_index(char** filenames, int filenumber)
 
 	int i;
 	for(i = 0; i < filenumber; i++)
+	{
 		cmd[i+1] = filenames[i];
+		//printf("\n%s\n", filenames[i]);
+	}
 
 	int index_fd = open(UNSORTED_INDEX_NAME, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
 
@@ -143,7 +146,7 @@ void prep_filenames(char** filenames, int filenumber)
 		int filename_length = strlen(filenames[i]);
 		char *new_str = malloc((filename_length+temp)*sizeof(char));
 		strcpy(new_str, dir_str);
-		strcpy((new_str+filename_length), filenames[i]);
+		strcat((new_str+strlen(new_str)), filenames[i]);
 		filenames[i] = new_str;
 	}
 }
