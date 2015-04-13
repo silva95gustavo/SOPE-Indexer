@@ -108,7 +108,7 @@ int grep(const char *word, const char *file, char *buf)
 	{
 		if (close(fd_pipe[READ]) == -1) return 1;
 		if (dup2(fd_pipe[WRITE], STDOUT_FILENO) == -1) return 1;
-		if (execl("/bin/grep", "grep", "-no", word, file, NULL) == -1) return 1;
+		if (execl("/bin/grep", "grep", "-now", word, file, NULL) == -1) return 1;
 		break; // <-- most useless break ever, but causes a compilation warning if removed
 	}
 	default: // parent
