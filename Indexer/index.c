@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #define MAX_DIR_SIZE 254
+#define WORDS_FILE "words.txt"
 
 int iterate_dir_files(const char *folder);
 int sw(const char *curr_dir, const char *file);
@@ -26,20 +27,23 @@ int main(int argc, char *argv[])
 int iterate_dir_files(const char *folder)
 {
 	DIR *dir = opendir(folder);
-	char *curr_dir = get_current_dir_name();
+	char curr_dir[MAX_DIR_SIZE + 1];
+	getcwd(curr_dir, MAX_DIR_SIZE + 1);
 	struct dirent *ent = readdir(dir);
 	while(ent != NULL)
 	{
 		if(ent->d_type == DT_REG) // all files in TEMP_FOLDER must be the temporary indexes created by sw
 		{
+			if (strcmp(ent->d_name, WORDS_FILE) == 0) continue; // Ignore words.txt
 			char str[strlen(folder) + strlen(ent->d_name) + 1];
 			strcpy(str, folder);
-			strcpy(str, ent->d_name);
-			sw(curr_dir, ent->d_name);
+			strcat(str, "/");
+			strcat(str, ent->d_name);
+
+			if (sw(curr_dir, str)) return 1;
 		}
 		ent = readdir(dir);
 	}
-	free(curr_dir);
 	return 0;
 }
 
@@ -55,14 +59,13 @@ int sw(const char *curr_dir, const char *file)
 	{
 		char str[strlen(curr_dir) + strlen("sw") + 1];
 		strcpy(str, curr_dir);
+		strcat(str, "/");
 		strcat(str, "sw");
-
 		if (execl(str, "sw", file, NULL) == -1) return 1;
 		break; // <-- most useless break ever, but causes a compilation warning if removed
 	}
 	default: // parent
 	{
-		break;
 	}
 	}
 	return 0;
