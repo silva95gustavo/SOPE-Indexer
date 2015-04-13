@@ -89,6 +89,7 @@ int setup_dir()
 
 	dir_size = strlen(dir_name);
 	dir_name[dir_size++] = '/';
+	dir_name[dir_size++] = '\0';
 
 	dir = opendir(dir_name);
 
