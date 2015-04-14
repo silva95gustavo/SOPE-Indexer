@@ -17,11 +17,8 @@
 #define SORTED_REPEAT_INDEX "sr_index.txt"	// sorted index, with repeated lines
 #define INDEX_NAME "index.txt"				// sorted index, result
 
-// Variables
-DIR* dir;
-
 // Function declarations
-int setup_dir();
+int setup_dir(DIR **dir);
 int concatenate_files_to_index(char** filenames, int filenumber);
 void prep_filenames(char** filenames, int filenumber);
 int sort_index();
@@ -36,7 +33,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if(setup_dir() != 0) return 1; // Set dir string
+	DIR* dir = NULL;
+	if(setup_dir(&dir) != 0) return 1; // Set dir string
 
 	struct dirent *ent;
 	char** filenames = malloc(0);
@@ -67,7 +65,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int setup_dir()
+int setup_dir(DIR **dir)
 {
 	char *dir_name;
 
@@ -92,9 +90,9 @@ int setup_dir()
 	dir_name[dir_size++] = '/';
 	dir_name[dir_size++] = '\0';
 
-	dir = opendir(dir_name);
+	*dir = opendir(dir_name);
 
-	if(dir == NULL) return 1;
+	if(*dir == NULL) return -1;
 
 	return 0;
 }
