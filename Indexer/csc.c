@@ -118,7 +118,7 @@ int concatenate_files_to_index(char** filenames, int filenumber)
 	int pid = fork();
 	int status = 0;
 
-	if(pid != 0)
+	if(pid == 0)
 	{
 		dup2(index_fd, STDOUT_FILENO);
 		execvp(cmd[0], cmd);
