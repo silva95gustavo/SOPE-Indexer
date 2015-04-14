@@ -36,9 +36,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	printf("hello\n");
 	if(setup_dir() != 0) return 1; // Set dir string
-	printf("hello\n");
 
 	struct dirent *ent;
 	char** filenames = malloc(0);
@@ -111,7 +109,6 @@ int concatenate_files_to_index(char** filenames, int filenumber)
 	for(i = 0; i < filenumber; i++)
 	{
 		cmd[i+1] = filenames[i];
-		//printf("\n%s\n", filenames[i]);
 	}
 
 	int index_fd = open(UNSORTED_INDEX_NAME, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
@@ -193,10 +190,11 @@ int remove_repeated_lines()
 	if(!repeat_file) return 1;
 	if(index_fd < 0) return 1;
 
-	char *str;
-	str = (char *)malloc(MAX_BUF_SIZE*sizeof(char));
-	//char word[MAX_WORD_SIZE];
-	char *prev_word = NULL;
+	char *header = "INDEX";
+	write(index_fd, header, strlen(header)*sizeof(char));
+
+	char *str = (char *)malloc(MAX_WORD_SIZE*sizeof(char));
+	char *prev_word = (char *)malloc(MAX_WORD_SIZE*sizeof(char));
 
 	int last_read_word = 0;		// 0 - false, 1 - true
 
@@ -206,84 +204,28 @@ int remove_repeated_lines()
 
 		if(str[len-1] == END_WORD_CHAR)			// WORD
 		{
-			if(prev_word == NULL)
+			if(strcmp(str, prev_word) == 0)		// Last word was the same
 			{
+				last_read_word = 0;
+			}
+			else								// New word
+			{
+				write(index_fd, "\n\n", 2*sizeof(char));
 				write(index_fd, str, len*sizeof(char));
-				write(index_fd, " ", 1*sizeof(char));
+				write(index_fd, " ", sizeof(char));
 
-				prev_word = malloc(len*sizeof(char));
 				strcpy(prev_word, str);
 				last_read_word = 1;
-			}
-			else
-			{
-				if(strcmp(str, prev_word) == 0)		// Last word was the same
-				{
-					last_read_word = 0;
-				}
-				else								// New word
-				{
-					write(index_fd, "\n", sizeof(char));
-					write(index_fd, str, len*sizeof(char));
-					write(index_fd, " ", sizeof(char));
-					//free(prev_word);
-					prev_word = malloc(len*sizeof(char));
-					strcpy(prev_word, str);
-					last_read_word = 1;
-				}
 			}
 		}
 		else								// FILE-LINE match
 		{
 			if(last_read_word == 0)
 				write(index_fd, ", ", 2*sizeof(char));
-			else
-				write(index_fd, " ", sizeof(char));
+
 			write(index_fd, str, len*sizeof(char));
 			last_read_word = 0;
 		}
-
-		free(str);
-		str = (char *)malloc(MAX_BUF_SIZE*sizeof(char));
-
-		/*int len = strlen(str);
-		if(str[len-1] == END_WORD_CHAR)	// string read is a word of the index
-		{
-			last_read_word = 1;
-			strcpy(word, str);
-
-			if(prev_word == NULL)
-			{
-				write(index_fd, word, strlen(word)*sizeof(char));
-				write(index_fd, " ", 1);
-
-				prev_word = malloc(strlen(word));
-				strcpy(prev_word, word);
-			}
-			else
-			{
-				if(strcmp(prev_word, word)!= 0)
-				{
-					prev_word = malloc(strlen(word));
-					strcpy(prev_word, word);
-					write(index_fd, "\n", 1);
-					write(index_fd, word, strlen(word)*sizeof(char));
-					write(index_fd, " ", 1);
-				}
-				else
-					last_read_word = 0;
-			}
-		}
-		else							// string read is a match <file>-<line>
-		{
-			if(last_read_word == 0)
-				write(index_fd, ", ", 2);
-
-			write(index_fd, str, len*sizeof(char));
-
-			last_read_word = 0;
-		}*/
-
 	}
 
 	close(index_fd);
