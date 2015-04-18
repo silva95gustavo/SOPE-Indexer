@@ -226,6 +226,8 @@ int remove_repeated_lines()
 		}
 	}
 
+	if (write(index_fd, "\n", 1) != 1) return 1; // Add ending newline
+
 	close(index_fd);
 	fclose(repeat_file);
 
