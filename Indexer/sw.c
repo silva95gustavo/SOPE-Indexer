@@ -24,7 +24,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (find_words(argv[1])) return 1;
+	char file[1024];
+	strcpy(file, realpath(argv[1], NULL));
+
+	if (find_words(file)) return 1;
 
 	return 0;
 }

@@ -6,9 +6,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <libgen.h>
+#include <limits.h>
 #include "index.h"
 
-#define MAX_DIR_SIZE 254
+#define MAX_DIR_SIZE PATH_MAX
 #define WORDS_FILE "words.txt"
 #define TEMP_FOLDER "temp/"
 
@@ -23,17 +25,24 @@ int main(int argc, char *argv[])
 	if (create_temp_folder()) return 1;
 
 	char curr_dir[MAX_DIR_SIZE + 1];
-	getcwd(curr_dir, MAX_DIR_SIZE + 1);
+	strcpy(curr_dir, dirname(realpath(argv[0],NULL)));
+
+	char folder[MAX_DIR_SIZE + 1];
+	getcwd(folder, MAX_DIR_SIZE + 1);
+	strcat(folder, "/");
+	strcat(folder, argv[1]);
+	char *folder2 = realpath(folder, NULL);
 
 	pid_t *pids = NULL;
 	int num_pids;
-	if (iterate_dir_files(curr_dir, argv[1], &pids, &num_pids)) return 1;
-
+	if (iterate_dir_files(curr_dir, folder2, &pids, &num_pids)) return 1;
+	free(folder2);
 	size_t i;
 	for (i = 0; i < num_pids; ++i)
 	{
-		int stat_loc;
-		waitpid(pids[i], &stat_loc, 0);
+		int status;
+		if (waitpid(pids[i], &status, 0) == -1) return 1;
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) return 1;
 	}
 
 	free(pids);
@@ -50,7 +59,7 @@ int create_temp_folder()
 		if (mkdir(TEMP_FOLDER, 0700) == -1) return 1;
 		else return 0;
 	}
-	return 1; // temp folder already exists, abort to avoid overwriting files
+	return 0; // temp folder already exists
 }
 
 int delete_temp_folder(const char *curr_dir)
