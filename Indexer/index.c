@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
 	strcat(folder, argv[1]);
 	char *folder2 = realpath(folder, NULL);
 
+	if (!check_words_exist(folder2)) return 1;
+
 	pid_t *pids = NULL;
 	int num_pids;
 	if (iterate_dir_files(curr_dir, folder2, &pids, &num_pids)) return 1;
@@ -84,6 +86,16 @@ int delete_temp_folder(const char *curr_dir)
 	return 0;
 }
 
+int check_words_exist(const char *folder)
+{
+	char file[MAX_DIR_SIZE + strlen(WORDS_FILE) + 2];
+	strcpy(file, folder);
+	strcat(file, "/");
+	strcat(file, WORDS_FILE);
+	struct stat buffer;
+	return stat(file, &buffer) == 0;
+}
+
 int iterate_dir_files(const char *curr_dir, const char *folder, pid_t **pids, int *num_pids)
 {
 	*num_pids = 0;
@@ -107,6 +119,7 @@ int iterate_dir_files(const char *curr_dir, const char *folder, pid_t **pids, in
 			if (sw(curr_dir, str, &(*pids)[*num_pids - 1])) return 1;
 		}
 	}
+	if (*num_pids == 0) return 1; // No files to index
 	if (closedir(dir) == -1) return 1;
 	return 0;
 }
