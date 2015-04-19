@@ -6,16 +6,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include "index.h"
 
 #define MAX_DIR_SIZE 254
 #define WORDS_FILE "words.txt"
 #define TEMP_FOLDER "temp/"
-
-int create_temp_folder();
-int delete_temp_folder(const char *curr_dir);
-int iterate_dir_files(const char *curr_dir, const char *folder, pid_t **pids, int *num_pids);
-int sw(const char *curr_dir, const char *file, pid_t *pid);
-int csc(const char *curr_dir);
 
 int main(int argc, char *argv[])
 {
