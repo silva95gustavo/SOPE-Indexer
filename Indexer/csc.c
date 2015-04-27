@@ -195,7 +195,7 @@ int* sort_index(int pipefd[], int newpipe[])
 int remove_repeated_lines(int pipefd[])
 {
 	FILE *repeat_file = fdopen(pipefd[PIPE_READ], "rb");
-	int index_fd = open(INDEX_NAME, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
+	int index_fd = open(INDEX_NAME, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
 
 	if(!repeat_file) return 1;
 	if(index_fd < 0) return 1;
